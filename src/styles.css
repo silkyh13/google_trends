@@ -1,0 +1,9 @@
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.nav-bar-header-desktop {
+  color: pink !important;
+  background-color: black !important;
+}
