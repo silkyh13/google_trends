@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const googletrends = require("../controllers/googletrends");
 
-router.get("/googletrends", googletrends.get);
+router.post("/googletrends", googletrends.post);
 
 module.exports = router;

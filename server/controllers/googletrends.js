@@ -1,7 +1,7 @@
 const googleTrends = require("../models/googletrends");
 
-const get = (req, res) => {
-  googleTrends.get("GME", (err, response) => {
+const post = (req, res) => {
+  googleTrends.post(req.body.keyword, (err, response) => {
     if (err) {
       res.status(500).send(err);
     }
@@ -11,5 +11,5 @@ const get = (req, res) => {
 };
 
 module.exports = {
-  get,
+  post,
 };

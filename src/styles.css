@@ -3,7 +3,6 @@
   text-align: center;
 }
 
-.nav-bar-header-desktop {
-  color: pink !important;
-  background-color: black !important;
+.search {
+  width: 30%;
 }

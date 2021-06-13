@@ -5,7 +5,8 @@ export const query = createSlice({
   initialState: { value: [] },
   reducers: {
     setQuery: (state, action) => {
-      console.log(action.payload);
+      // console.log(action.payload);
+      state.value = [...state.value, action.payload];
     },
   },
 });

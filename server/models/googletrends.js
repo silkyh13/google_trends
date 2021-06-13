@@ -1,11 +1,11 @@
 const axios = require("axios");
 const googleTrends = require("google-trends-api");
 
-const get = (searchWord, cb) => {
+const post = (searchWord, cb) => {
   googleTrends
     .interestOverTime({
       keyword: searchWord,
-      startTime: new Date(Date.now() - 168 * 60 * 60 * 1000),
+      startTime: new Date(Date.now() - 240 * 60 * 60 * 1000),
     })
     .then(function (results) {
       let result = JSON.parse(results);
@@ -18,5 +18,5 @@ const get = (searchWord, cb) => {
     });
 };
 module.exports = {
-  get,
+  post,
 };
