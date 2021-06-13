@@ -2,41 +2,88 @@ import React, { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import { stateOfquery } from "../../state/slices/query";
 import { Line } from "react-chartjs-2";
+const axios = require("axios");
+var colorArray = [
+  "#81BEF7",
+  "#ffff96",
+  "#FF4000",
+  "#5882FA",
+  "#009688",
+  "#f6cd61",
+  "#c99789",
+  "#f6abb6",
+  "#04B404",
+  "#A901DB",
+  "#F5A9BC",
+  "#4b3832",
+  "#4a4e4d",
+  "#0e9aa7",
+  "#ead5dc",
+  "#fe8a71",
+  "#eec9d2",
+  "#f4b6c2",
+  "#3da4ab",
+];
 
 export default function LineGraph() {
   const chartReference = useRef();
-  const [entered, setEntered] = useState(false);
+  const [prevData, setPrevData] = useState([]);
   const query = useSelector(stateOfquery).value;
-  const [data, setData] = useState({
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-    datasets: [
-      {
-        label: "First dataset",
-        data: [33, 53, 85, 41, 44, 65],
-        fill: false,
-        borderColor: "rgba(75,192,192,1)",
-      },
-      {
-        label: "Second dataset",
-        data: [33, 25, 35, 51, 54, 76],
-        fill: false,
-        borderColor: "#742774",
-      },
-    ],
-  });
+  const [data, setData] = useState();
+  const [theLabels, setTheLabels] = useState([]);
+  let querying = (key) => {
+    let labels = [];
+    let data = [];
+    axios
+      .post("/api/googletrends", { keyword: key })
+      .then((res) => {
+        res.data.timelineData.forEach((item) => {
+          labels.push(item.formattedAxisTime);
+          data.push(item.value[0]);
+        });
+        chartReference.current.data.labels = labels;
+
+        let datasets = {
+          label: key,
+          data,
+          fill: false,
+        };
+        if (chartReference.current.data.datasets) {
+          datasets.borderColor =
+            colorArray[chartReference.current.data.datasets.length];
+          chartReference.current.data.datasets.push(datasets);
+        } else {
+          datasets.borderColor = colorArray[0];
+          chartReference.current.data.datasets = [datasets];
+        }
+        chartReference.current.update();
+      })
+      .catch((err) => console.error(err));
+  };
+  useEffect(() => {
+    querying("happy");
+    querying("sad");
+  }, []);
   useEffect(() => {
     if (query.length) {
-      let label = [];
-      let curr = query[0];
+      let curr = query[query.length - 1];
+      let data = [];
+      let datasets = {};
+      let labels = [];
       for (let key in curr) {
+        datasets.label = key;
+        datasets.fill = false;
         let searchQuery = curr[key];
         for (let i = 0; i < searchQuery.length; i++) {
-          let day = searchQuery[i].formattedAxisTime;
-          label.push(day);
+          labels.push(searchQuery[i].formattedAxisTime);
+          data.push(searchQuery[i].value[0]);
         }
       }
-      chartReference.current.data.labels = label;
-      chartReference.current.update();
+      datasets.data = data;
+      datasets.borderColor = colorArray[prevData.length - 1];
+      setTheLabels(labels);
+      setPrevData([...prevData, datasets]);
+
       //   console.log(chartReference.current.data);
       //   const chart = chartReference.current.chartInstance;
       //   chart.data.labels = label;
@@ -47,13 +94,23 @@ export default function LineGraph() {
       //   console.log("what is label now", data);
     }
   }, [query]);
+  useEffect(() => {
+    if (prevData.length) {
+      //   chartReference.current.destroy();
+      let data = { labels: theLabels };
+      data.datasets = prevData;
+      console.log(data);
+      chartReference.current.data = data;
 
+      chartReference.current.update();
+    }
+  }, [prevData]);
   return (
     <div>
       <Line
         ref={chartReference}
         data={data}
-        width={100}
+        width={30}
         height={400}
         options={{ maintainAspectRatio: false }}
       />
