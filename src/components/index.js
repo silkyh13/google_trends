@@ -1,14 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 
-import Search from "./Search";
-
+import Nav from "./Nav";
 import Line from "./Line";
-
+import Sidebar from "./Sidebar";
 export default function LineGraph() {
+  const [isOpen, setIsOpen] = useState(false);
+  const toggleModal = () => {
+    setIsOpen(!isOpen);
+  };
   return (
-    <div>
-      <Search />
-      <Line />
-    </div>
+    <>
+      <Nav toggleModal={toggleModal} />
+
+      <Line isOpen={isOpen} />
+      <Sidebar isOpen={isOpen} toggleModal={toggleModal} />
+      <div className={"modalcover" + (isOpen ? " show" : " none")}></div>
+    </>
   );
 }

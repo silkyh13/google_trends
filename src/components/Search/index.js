@@ -49,9 +49,6 @@ const Input = () => {
         type="text"
         onChange={handleChange}
       />
-      <Button variant="outline-secondary" id="button-addon2">
-        Button
-      </Button>
     </InputGroup>
   );
 };

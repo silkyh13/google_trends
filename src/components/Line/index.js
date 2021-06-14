@@ -25,7 +25,7 @@ var colorArray = [
   "#3da4ab",
 ];
 
-export default function LineGraph() {
+export default function TrendLineGraph({ isOpen }) {
   const chartReference = useRef();
   const [prevData, setPrevData] = useState([]);
   const query = useSelector(stateOfquery).value;
@@ -83,15 +83,6 @@ export default function LineGraph() {
       datasets.borderColor = colorArray[prevData.length - 1];
       setTheLabels(labels);
       setPrevData([...prevData, datasets]);
-
-      //   console.log(chartReference.current.data);
-      //   const chart = chartReference.current.chartInstance;
-      //   chart.data.labels = label;
-      //   chart.update();
-      //   let copy = data;
-      //   copy.labels = label;
-
-      //   console.log("what is label now", data);
     }
   }, [query]);
   useEffect(() => {
@@ -99,12 +90,12 @@ export default function LineGraph() {
       //   chartReference.current.destroy();
       let data = { labels: theLabels };
       data.datasets = prevData;
-      console.log(data);
+
       chartReference.current.data = data;
 
-      chartReference.current.update();
+      chartReference.current.update("none");
     }
-  }, [prevData]);
+  }, [prevData, isOpen]);
   return (
     <div>
       <Line
