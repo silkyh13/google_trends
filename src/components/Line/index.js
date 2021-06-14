@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useSelector } from "react-redux";
-import { stateOfquery } from "../../state/slices/query";
+import { useSelector, useDispatch } from "react-redux";
+import { stateOfquery, setDefault } from "../../state/slices/query";
 import { Line } from "react-chartjs-2";
 const axios = require("axios");
 var colorArray = [
@@ -27,72 +27,73 @@ var colorArray = [
 
 export default function TrendLineGraph({ isOpen }) {
   const chartReference = useRef();
+  const dispatch = useDispatch();
   const [prevData, setPrevData] = useState([]);
-  const query = useSelector(stateOfquery).value;
-  const [data, setData] = useState();
-  const [theLabels, setTheLabels] = useState([]);
-  let querying = (key) => {
+  const query = useSelector(stateOfquery);
+  let querying = (key, color, results) => {
     let labels = [];
-    let data = [];
-    axios
+    let apidata = [];
+    return axios
       .post("/api/googletrends", { keyword: key })
       .then((res) => {
         res.data.timelineData.forEach((item) => {
           labels.push(item.formattedAxisTime);
-          data.push(item.value[0]);
+          apidata.push(item.value[0]);
         });
-        chartReference.current.data.labels = labels;
-
         let datasets = {
           label: key,
-          data,
+          data: apidata,
           fill: false,
         };
-        if (chartReference.current.data.datasets) {
-          datasets.borderColor =
-            colorArray[chartReference.current.data.datasets.length];
-          chartReference.current.data.datasets.push(datasets);
+        datasets.borderColor = colorArray[color];
+
+        if (key == "happy") {
+          results.labels = labels;
+          results.datasets.push(datasets);
         } else {
-          datasets.borderColor = colorArray[0];
-          chartReference.current.data.datasets = [datasets];
+          results.datasets.push(datasets);
         }
-        chartReference.current.update();
+        return results;
       })
       .catch((err) => console.error(err));
   };
+  let genereateDefault = async () => {
+    let results = { labels: [], datasets: [] };
+    querying("happy", 0, results)
+      .then((results) => {
+        return querying("sad", 1, results);
+      })
+      .then(() => {
+        dispatch(setDefault(results));
+      });
+  };
   useEffect(() => {
-    querying("happy");
-    querying("sad");
-  }, []);
-  useEffect(() => {
-    if (query.length) {
-      let curr = query[query.length - 1];
+    let userQuery = query.value;
+    if (userQuery.length) {
+      let curr = userQuery[userQuery.length - 1];
       let data = [];
       let datasets = {};
-      let labels = [];
       for (let key in curr) {
         datasets.label = key;
         datasets.fill = false;
         let searchQuery = curr[key];
         for (let i = 0; i < searchQuery.length; i++) {
-          labels.push(searchQuery[i].formattedAxisTime);
           data.push(searchQuery[i].value[0]);
         }
       }
       datasets.data = data;
       datasets.borderColor = colorArray[prevData.length - 1];
-      setTheLabels(labels);
       setPrevData([...prevData, datasets]);
     }
-  }, [query]);
+  }, [query.value]);
+  useEffect(() => {
+    genereateDefault();
+  }, []);
   useEffect(() => {
     if (prevData.length) {
-      //   chartReference.current.destroy();
-      let data = { labels: theLabels };
+      let data = { labels: query.default.labels };
       data.datasets = prevData;
-
       chartReference.current.data = data;
-
       chartReference.current.update("none");
     }
   }, [prevData, isOpen]);
@@ -100,7 +101,7 @@ export default function TrendLineGraph({ isOpen }) {
     <div>
       <Line
         ref={chartReference}
-        data={data}
+        data={query.default}
         width={30}
         height={400}
         options={{ maintainAspectRatio: false }}
