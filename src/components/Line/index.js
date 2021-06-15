@@ -1,29 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
+import { Card, Button, Container, Row } from "react-bootstrap";
 import { useSelector, useDispatch } from "react-redux";
 import { stateOfquery, setDefault } from "../../state/slices/query";
 import { Line } from "react-chartjs-2";
+import colorArray from "./color/";
 const axios = require("axios");
-var colorArray = [
-  "#81BEF7",
-  "#ffff96",
-  "#FF4000",
-  "#5882FA",
-  "#009688",
-  "#f6cd61",
-  "#c99789",
-  "#f6abb6",
-  "#04B404",
-  "#A901DB",
-  "#F5A9BC",
-  "#4b3832",
-  "#4a4e4d",
-  "#0e9aa7",
-  "#ead5dc",
-  "#fe8a71",
-  "#eec9d2",
-  "#f4b6c2",
-  "#3da4ab",
-];
 
 export default function TrendLineGraph({ isOpen }) {
   const chartReference = useRef();
@@ -91,21 +72,34 @@ export default function TrendLineGraph({ isOpen }) {
   }, []);
   useEffect(() => {
     if (prevData.length) {
-      let data = { labels: query.default.labels };
-      data.datasets = prevData;
+      let data = { labels: query.default.labels, datasets: prevData };
       chartReference.current.data = data;
       chartReference.current.update("none");
     }
   }, [prevData, isOpen]);
   return (
-    <div>
-      <Line
-        ref={chartReference}
-        data={query.default}
-        width={30}
-        height={400}
-        options={{ maintainAspectRatio: false }}
-      />
-    </div>
+    <Container className="mt-3">
+      <Row className="justify-content-md-center">
+        <Card style={{ width: "80%" }}>
+          <Card.Header as="h5">Interest over time</Card.Header>
+          <Card.Body>
+            <Line
+              ref={chartReference}
+              data={query.default}
+              width={30}
+              height={400}
+              options={{ maintainAspectRatio: false }}
+            />
+          </Card.Body>
+          {/* <Line
+          ref={chartReference}
+          data={query.default}
+          width={30}
+          height={400}
+          options={{ maintainAspectRatio: false }}
+        /> */}
+        </Card>
+      </Row>
+    </Container>
   );
 }
